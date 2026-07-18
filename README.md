@@ -2,6 +2,8 @@
 
 A minimal native macOS app that safely locks your keyboard while you clean it.
 
+![CleanKeys app window](Docs/CleanKeys-screenshot.png)
+
 ## Features
 
 - Lock the keyboard for 30 seconds, 1, 2, or 5 minutes.
