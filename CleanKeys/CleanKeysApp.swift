@@ -9,7 +9,7 @@ struct CleanKeysApp: App {
     var body: some Scene {
         Window("CleanKeys", id: "main") {
             CleanKeysWindowView(model: model)
-                .frame(width: 400)
+                .frame(width: 420)
         }
         .windowResizability(.contentSize)
         .commands {

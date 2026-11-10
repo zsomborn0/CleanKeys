@@ -3,52 +3,55 @@ import SwiftUI
 
 @MainActor
 final class LockHUDController {
-    private var panel: NSPanel?
+    private var panels: [NSPanel] = []
 
     func show(model: LockHUDViewModel) {
         close()
 
-        let size = CGSize(width: 390, height: model.pointerLocked ? 190 : 225)
-        let frame = Self.frame(size: size, centered: model.blackoutEnabled)
-        let panel = NSPanel(
-            contentRect: frame,
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
+        guard model.blackoutEnabled else { return }
+        let size = CGSize(width: 480, height: 260)
+        // Each blacked-out display gets synchronized instructions. The normal
+        // cleaning mode stays entirely within the existing main window.
+        let screens = NSScreen.screens
 
-        panel.contentView = NSHostingView(rootView: LockHUDView(model: model))
-        panel.backgroundColor = .clear
-        panel.isOpaque = false
-        panel.hasShadow = true
-        panel.hidesOnDeactivate = false
-        panel.isFloatingPanel = true
-        panel.becomesKeyOnlyIfNeeded = true
-        panel.level = model.blackoutEnabled || model.pointerLocked
-            ? NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
-            : .floating
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        panel.ignoresMouseEvents = model.pointerLocked
-        panel.orderFrontRegardless()
+        panels = screens.map { screen in
+            let frame = Self.frame(size: size, screenFrame: screen.frame)
+            let panel = NSPanel(
+                contentRect: frame,
+                styleMask: [.borderless, .nonactivatingPanel],
+                backing: .buffered,
+                defer: false
+            )
 
-        self.panel = panel
+            panel.contentView = NSHostingView(rootView: LockHUDView(model: model))
+            panel.backgroundColor = .clear
+            panel.isOpaque = false
+            panel.hasShadow = false
+            panel.hidesOnDeactivate = false
+            panel.isFloatingPanel = true
+            panel.becomesKeyOnlyIfNeeded = true
+            panel.level = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+            panel.ignoresMouseEvents = true
+            panel.orderFrontRegardless()
+            return panel
+        }
     }
 
     func close() {
-        panel?.orderOut(nil)
-        panel?.contentView = nil
-        panel = nil
+        panels.forEach {
+            $0.orderOut(nil)
+            $0.contentView = nil
+        }
+        panels.removeAll()
     }
 
-    private static func frame(size: CGSize, centered: Bool) -> CGRect {
-        guard let screen = NSScreen.main else {
-            return CGRect(origin: .zero, size: size)
-        }
-        let visible = screen.visibleFrame
-        let x = visible.midX - size.width / 2
-        let y = centered
-            ? visible.midY - size.height / 2
-            : visible.maxY - size.height - 28
-        return CGRect(x: x, y: y, width: size.width, height: size.height)
+    static func frame(size: CGSize, screenFrame: CGRect) -> CGRect {
+        CGRect(
+            x: screenFrame.midX - size.width / 2,
+            y: screenFrame.midY - size.height / 2,
+            width: size.width,
+            height: size.height
+        )
     }
 }

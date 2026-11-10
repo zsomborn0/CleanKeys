@@ -4,3 +4,6 @@ Build/
 DerivedData/
 **/xcuserdata/
 *.xcuserstate
+
+# The hosted website has its own source repository.
+/Website/

@@ -1,8 +1,8 @@
 import Foundation
+import Combine
 
 enum LockPhase: Equatable {
     case idle
-    case countdown(Int)
     case locked
     case ending
 
@@ -25,44 +25,29 @@ enum InputBlockerError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .permissionMissing:
-            return "To lock the keyboard, allow CleanKeys in System Settings › Privacy & Security › Accessibility."
+            return L10n.text("To lock the keyboard, allow CleanKeys in System Settings › Privacy & Security › Accessibility.")
         case .tapCreationFailed:
-            return "macOS could not create the input filter. Check the permission and try again."
+            return L10n.text("macOS could not create the input filter. Check the permission and try again.")
         case .tapEnableFailed:
-            return "The input filter was created but could not be enabled. The keyboard was not locked."
+            return L10n.text("The input filter was created but could not be enabled. The keyboard was not locked.")
         case .pointerLockFailed:
-            return "macOS could not lock the pointer. CleanKeys did not start cleaning mode for safety."
+            return L10n.text("macOS could not lock the pointer. CleanKeys did not start cleaning mode for safety.")
         }
     }
 }
 
-struct LockOptions: Equatable {
-    let lockPointer: Bool
-    let blackoutScreen: Bool
-    let durationSeconds: Int
-}
-
 @MainActor
 final class LockHUDViewModel: ObservableObject {
-    @Published var remainingSeconds: Int
+    @Published var escapeHoldProgress: Double = 0
 
-    let pointerLocked: Bool
-    let blackoutEnabled: Bool
-    let onUnlock: () -> Void
-
-    init(
-        remainingSeconds: Int,
-        pointerLocked: Bool,
-        blackoutEnabled: Bool,
-        onUnlock: @escaping () -> Void
-    ) {
-        self.remainingSeconds = remainingSeconds
-        self.pointerLocked = pointerLocked
-        self.blackoutEnabled = blackoutEnabled
-        self.onUnlock = onUnlock
+    var escapeCountdown: Int? {
+        guard escapeHoldProgress > 0 else { return nil }
+        return max(1, 3 - Int(escapeHoldProgress * 3))
     }
 
-    var formattedRemainingTime: String {
-        String(format: "%d:%02d", remainingSeconds / 60, remainingSeconds % 60)
+    let blackoutEnabled: Bool
+
+    init(blackoutEnabled: Bool) {
+        self.blackoutEnabled = blackoutEnabled
     }
 }

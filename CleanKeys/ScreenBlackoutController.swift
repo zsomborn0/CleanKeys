@@ -46,7 +46,6 @@ final class PointerShieldController {
         hide()
 
         cursorAnchor = CGEvent(source: nil)?.location
-        _ = CGAssociateMouseAndMouseCursorPosition(0)
         if let cursorAnchor {
             _ = CGWarpMouseCursorPosition(cursorAnchor)
         }
@@ -75,7 +74,7 @@ final class PointerShieldController {
                 screen: screen
             )
 
-            let shieldView = PointerShieldView(frame: screen.frame)
+            let shieldView = PointerShieldView(frame: CGRect(origin: .zero, size: screen.frame.size))
             shieldView.autoresizingMask = [.width, .height]
 
             panel.contentView = shieldView
@@ -110,7 +109,6 @@ final class PointerShieldController {
         }
         windows.removeAll()
 
-        _ = CGAssociateMouseAndMouseCursorPosition(1)
         cursorAnchor = nil
 
         if cursorIsHidden {
@@ -128,14 +126,12 @@ private final class PointerShieldPanel: NSPanel {
 private final class PointerShieldView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        acceptsTouchEvents = true
         wantsRestingTouches = true
         allowedTouchTypes = [.direct, .indirect]
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        acceptsTouchEvents = true
         wantsRestingTouches = true
         allowedTouchTypes = [.direct, .indirect]
     }
